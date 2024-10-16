@@ -2,7 +2,7 @@
 name = "ib1-directory"
 version = "0.1.0"
 description = ""
-authors = ["Kip Parker <kip@fifthcontinent.io>"]
+authors = ["Kip Parker <kip.parker@icebreakerone.org>"]
 readme = "README.md"
 packages = [{include = "ib1", from = "src"}]
 

@@ -29,3 +29,4 @@ perseus/static
 perseus/staticfiles
 
 node_modules/
+poetry.lock
