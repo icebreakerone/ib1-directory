@@ -23,11 +23,12 @@ def certificate():
     )
     subject = issuer = x509.Name(
         [
-            x509.NameAttribute(NameOID.COUNTRY_NAME, "US"),
-            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "California"),
-            x509.NameAttribute(NameOID.LOCALITY_NAME, "San Francisco"),
-            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "My Company"),
-            x509.NameAttribute(NameOID.COMMON_NAME, "mycompany.com"),
+            x509.NameAttribute(NameOID.COUNTRY_NAME, "GB"),
+            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "London"),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Member"),
+            x509.NameAttribute(
+                NameOID.COMMON_NAME, "https://directory.ib1.org/member/123456"
+            ),
         ]
     )
     cert_builder = (
@@ -53,7 +54,7 @@ def test_encode_roles(certificate):
 
 def test_encode_application(certificate):
     cert_builder, private_key = certificate
-    application = "my_app"
+    application = "https://directory.ib1.org/application/123456"
     cert_builder = encode_application(cert_builder, application)
     cert = cert_builder.sign(private_key, hashes.SHA256())
     decoded_application = decode_application(cert)
