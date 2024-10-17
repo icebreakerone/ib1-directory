@@ -138,9 +138,7 @@ def require_role(role_name: str, cert: x509.Certificate) -> bool:
     Raises:
         CertificateRoleError: If the certificate does not include the role or the role information.
     """
-    print("Attempt to decode")
     roles = decode_roles(cert)
-    print(roles)
     if role_name not in roles:
         raise CertificateRoleError(
             "Client certificate does not include role " + role_name
