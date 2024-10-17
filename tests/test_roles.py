@@ -1,50 +1,22 @@
 import pytest
-from cryptography.hazmat.primitives.asymmetric import rsa
-from cryptography.hazmat.primitives import serialization, hashes
-from cryptography import x509
-from cryptography.x509.oid import NameOID
-from datetime import datetime, timedelta
-from ib1.directory.exceptions import CertificateRoleError, CertificateExtensionError
+from cryptography.hazmat.primitives import hashes
+from ib1.directory import CertificateRoleError, CertificateExtensionError
 
-from ib1.directory.roles import (
+from ib1.directory import (
+    require_role,
+)
+from ib1.directory.extensions import (
     encode_roles,
     encode_application,
     decode_roles,
     decode_application,
-    require_role,
 )
 
-
-@pytest.fixture
-def certificate():
-    private_key = rsa.generate_private_key(
-        public_exponent=65537,
-        key_size=2048,
-    )
-    subject = issuer = x509.Name(
-        [
-            x509.NameAttribute(NameOID.COUNTRY_NAME, "GB"),
-            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "London"),
-            x509.NameAttribute(NameOID.ORGANIZATION_NAME, "Member"),
-            x509.NameAttribute(
-                NameOID.COMMON_NAME, "https://directory.ib1.org/member/123456"
-            ),
-        ]
-    )
-    cert_builder = (
-        x509.CertificateBuilder()
-        .subject_name(subject)
-        .issuer_name(issuer)
-        .public_key(private_key.public_key())
-        .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.utcnow())
-        .not_valid_after(datetime.utcnow() + timedelta(days=365))
-    )
-    return cert_builder, private_key
+from tests import certificate_builder  # noqa: F401
 
 
-def test_encode_roles(certificate):
-    cert_builder, private_key = certificate
+def test_encode_roles(certificate_builder):  # noqa: F811
+    cert_builder, private_key = certificate_builder
     roles = ["admin", "user"]
     cert_builder = encode_roles(cert_builder, roles)
     cert = cert_builder.sign(private_key, hashes.SHA256())
@@ -52,8 +24,8 @@ def test_encode_roles(certificate):
     assert decoded_roles == roles
 
 
-def test_encode_application(certificate):
-    cert_builder, private_key = certificate
+def test_encode_application(certificate_builder):  # noqa: F811
+    cert_builder, private_key = certificate_builder
     application = "https://directory.ib1.org/application/123456"
     cert_builder = encode_application(cert_builder, application)
     cert = cert_builder.sign(private_key, hashes.SHA256())
@@ -61,30 +33,30 @@ def test_encode_application(certificate):
     assert decoded_application == application
 
 
-def test_decode_roles_missing_extension(certificate):
-    cert_builder, private_key = certificate
+def test_decode_roles_missing_extension(certificate_builder):  # noqa: F811
+    cert_builder, private_key = certificate_builder
     cert = cert_builder.sign(private_key, hashes.SHA256())
     with pytest.raises(CertificateExtensionError):
         decode_roles(cert)
 
 
-def test_decode_application_missing_extension(certificate):
-    cert_builder, private_key = certificate
+def test_decode_application_missing_extension(certificate_builder):  # noqa: F811
+    cert_builder, private_key = certificate_builder
     cert = cert_builder.sign(private_key, hashes.SHA256())
     with pytest.raises(CertificateExtensionError):
         decode_application(cert)
 
 
-def test_require_role(certificate):
-    cert_builder, private_key = certificate
+def test_require_role(certificate_builder):  # noqa: F811
+    cert_builder, private_key = certificate_builder
     roles = ["admin", "user"]
     cert_builder = encode_roles(cert_builder, roles)
     cert = cert_builder.sign(private_key, hashes.SHA256())
     assert require_role("admin", cert) is True
 
 
-def test_require_role_missing(certificate):
-    cert_builder, private_key = certificate
+def test_require_role_missing(certificate_builder):  # noqa: F811
+    cert_builder, private_key = certificate_builder
     roles = ["user"]
     cert_builder = encode_roles(cert_builder, roles)
     cert = cert_builder.sign(private_key, hashes.SHA256())

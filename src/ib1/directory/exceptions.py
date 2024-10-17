@@ -14,6 +14,10 @@ class CertificateMissingError(CertificateError):
     """
 
 
+class CertificateInvalidError(CertificateError):
+    pass
+
+
 class CertificateExtensionError(CertificateError):
     pass
 

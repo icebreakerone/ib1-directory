@@ -41,9 +41,13 @@ def _extension_value(cert: x509.Certificate, oid: str) -> bytes:
     Returns:
         bytes: The value of the extension.
     """
-    return cert.extensions.get_extension_for_oid(
-        x509.ObjectIdentifier(oid)
-    ).value.value  # type: ignore [attr-defined]
+    try:
+        extension = cert.extensions.get_extension_for_oid(
+            x509.ObjectIdentifier(oid)
+        ).value.value  # type: ignore [attr-defined]
+    except AttributeError:
+        raise CertificateExtensionError("Certificate is invalid or missing extensions")
+    return extension
 
 
 def encode_roles(cert_builder: x509.CertificateBuilder, roles: list[str]):
@@ -134,12 +138,7 @@ def require_role(role_name: str, cert: x509.Certificate) -> bool:
     Raises:
         CertificateRoleError: If the certificate does not include the role or the role information.
     """
-    try:
-        roles = decode_roles(cert)
-    except CertificateExtensionError:
-        raise CertificateRoleError(
-            "Client certificate does not include role information"
-        )
+    roles = decode_roles(cert)
     if role_name not in roles:
         raise CertificateRoleError(
             "Client certificate does not include role " + role_name
