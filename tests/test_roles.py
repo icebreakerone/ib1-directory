@@ -10,10 +10,10 @@ from ib1.directory import (
     require_role,
 )
 
-from tests import certificate_builder
+from tests import certificate_builder  # noqa: F401
 
 
-def test_encode_roles(certificate_builder):
+def test_encode_roles(certificate_builder):  # noqa: F811
     cert_builder, private_key = certificate_builder
     roles = ["admin", "user"]
     cert_builder = encode_roles(cert_builder, roles)
@@ -22,7 +22,7 @@ def test_encode_roles(certificate_builder):
     assert decoded_roles == roles
 
 
-def test_encode_application(certificate_builder):
+def test_encode_application(certificate_builder):  # noqa: F811
     cert_builder, private_key = certificate_builder
     application = "https://directory.ib1.org/application/123456"
     cert_builder = encode_application(cert_builder, application)
@@ -31,21 +31,21 @@ def test_encode_application(certificate_builder):
     assert decoded_application == application
 
 
-def test_decode_roles_missing_extension(certificate_builder):
+def test_decode_roles_missing_extension(certificate_builder):  # noqa: F811
     cert_builder, private_key = certificate_builder
     cert = cert_builder.sign(private_key, hashes.SHA256())
     with pytest.raises(CertificateExtensionError):
         decode_roles(cert)
 
 
-def test_decode_application_missing_extension(certificate_builder):
+def test_decode_application_missing_extension(certificate_builder):  # noqa: F811
     cert_builder, private_key = certificate_builder
     cert = cert_builder.sign(private_key, hashes.SHA256())
     with pytest.raises(CertificateExtensionError):
         decode_application(cert)
 
 
-def test_require_role(certificate_builder):
+def test_require_role(certificate_builder):  # noqa: F811
     cert_builder, private_key = certificate_builder
     roles = ["admin", "user"]
     cert_builder = encode_roles(cert_builder, roles)
@@ -53,7 +53,7 @@ def test_require_role(certificate_builder):
     assert require_role("admin", cert) is True
 
 
-def test_require_role_missing(certificate_builder):
+def test_require_role_missing(certificate_builder):  # noqa: F811
     cert_builder, private_key = certificate_builder
     roles = ["user"]
     cert_builder = encode_roles(cert_builder, roles)
