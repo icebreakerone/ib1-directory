@@ -1,8 +1,8 @@
 import pytest
 from cryptography.hazmat.primitives import hashes
-from ib1.directory.exceptions import CertificateRoleError, CertificateExtensionError
+from ib1.directory import CertificateRoleError, CertificateExtensionError
 
-from ib1.directory.roles import (
+from ib1.directory import (
     encode_roles,
     encode_application,
     decode_roles,
