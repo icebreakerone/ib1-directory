@@ -46,10 +46,11 @@ roles = decode_roles(cert)
 ```python
 from ib1 import directory
 ...
+    cert = directory.parse_cert(quoted_certificate_from_header)
     try:
         directory.require_role(
             "https://registry.core.ib1.org/scheme/perseus/role/carbon-accounting",
-            directory.parse_cert(quoted_certificate_from_header),
+            cert,
         )
     except directory.CertificateRoleError as e:
         raise HTTPException(
