@@ -16,6 +16,13 @@ poetry install
 poetry run pytest
 ```
 
+### Package and publish
+
+```bash
+poetry build
+poetry publish
+```
+
 ## Usage
 
 ### Encoding and decoding
