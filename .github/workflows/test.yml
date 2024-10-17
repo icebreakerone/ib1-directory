@@ -15,7 +15,6 @@ jobs:
         run: |
             pip install poetry
             poetry install --all-extras
-      - name: Lint with ruff
-        run: poetry run ruff check .
-      - name: Run tests
-        run: poetry run pytest
+      - name: Run tests and linting with tox
+        run: |
+            poetry run tox
