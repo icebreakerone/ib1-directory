@@ -3,11 +3,13 @@ from cryptography.hazmat.primitives import hashes
 from ib1.directory import CertificateRoleError, CertificateExtensionError
 
 from ib1.directory import (
+    require_role,
+)
+from ib1.directory.extensions import (
     encode_roles,
     encode_application,
     decode_roles,
     decode_application,
-    require_role,
 )
 
 from tests import certificate_builder  # noqa: F401
