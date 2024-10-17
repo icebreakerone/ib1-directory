@@ -32,3 +32,5 @@ node_modules/
 poetry.lock
 
 dist/
+
+.coverage
