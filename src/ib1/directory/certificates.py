@@ -111,26 +111,37 @@ def create_signing_issuer(
     return issuer_key, issuer_cert
 
 
-def sign_application_csr(
+def sign_csr(
     issuer_cert: x509.Certificate,
     issuer_key: ec.EllipticCurvePrivateKey,
     csr_pem: bytes,
     roles: List[str],
     application: str,
     san_uri: str,
-    serial_number: int,
     days_valid: int,
+    country: str,
+    state: str,
+    organization_name: str,
+    common_name: str,
 ) -> x509.Certificate:
     """Sign a user-provided CSR"""
     csr = x509.load_pem_x509_csr(csr_pem, default_backend())
-
+    # Build the subject from provided arguments
+    # the csr is only used for the public key
+    subject = x509.Name(
+        [
+            x509.NameAttribute(NameOID.COUNTRY_NAME, country),
+            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, state),
+            x509.NameAttribute(NameOID.ORGANIZATION_NAME, organization_name),
+            x509.NameAttribute(NameOID.COMMON_NAME, common_name),
+        ]
+    )
     # Build the application certificate
     cert_builder = (
         x509.CertificateBuilder()
-        .subject_name(csr.subject)
+        .subject_name(subject)
         .issuer_name(issuer_cert.subject)
         .public_key(csr.public_key())
-        .serial_number(serial_number)
         .not_valid_before(datetime.utcnow())
         .not_valid_after(datetime.utcnow() + timedelta(days=days_valid))
         .add_extension(
