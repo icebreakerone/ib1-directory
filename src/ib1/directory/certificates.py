@@ -25,6 +25,16 @@ def _ca_extensions_cert(
         .not_valid_before(datetime.utcnow())
         .not_valid_after(datetime.utcnow() + timedelta(days=365))
         .add_extension(
+            x509.SubjectKeyIdentifier.from_public_key(issuer_key.public_key()),
+            critical=False,
+        )
+        .add_extension(
+            x509.AuthorityKeyIdentifier.from_issuer_public_key(
+                signing_key.public_key()
+            ),
+            critical=False,
+        )
+        .add_extension(
             x509.BasicConstraints(ca=True, path_length=ca_path_length), critical=True
         )
         .add_extension(
@@ -94,7 +104,7 @@ def create_signing_issuer(
     issuer_cert = _ca_extensions_cert(
         subject=issuer_subject,
         issuer_name=ca_cert.subject,
-        issuer_key=ca_key,
+        issuer_key=issuer_key,
         signing_key=ca_key,
     )
 
