@@ -1,7 +1,7 @@
 from cryptography import x509
 
-from .exceptions import CertificateRoleError, CertificateExtensionError
-from . import der
+from ib1.directory.exceptions import CertificateRoleError, CertificateExtensionError
+from ib1.directory import der
 
 ROLE_IDENTIFIER = "1.3.6.1.4.1.62329.1.1"
 APPLICATION_IDENTIFIER = "1.3.6.1.4.1.62329.1.2"

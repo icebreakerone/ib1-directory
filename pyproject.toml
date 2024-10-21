@@ -10,6 +10,7 @@ packages = [{include = "ib1", from = "src"}]
 python = "^3.10"
 cryptography = "^43.0.1"
 asn1crypto = "^1.5.1"
+click = "^8.1.7"
 
 
 [tool.poetry.group.dev.dependencies]
