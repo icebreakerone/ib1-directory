@@ -55,80 +55,13 @@ def _ca_extensions_cert(
     )
 
 
-def create_signing_ca(
-    country="GB", framework="Core Trust Framework"
-) -> Tuple[ec.EllipticCurvePrivateKey, x509.Certificate]:
-    """Create the CA key and certificate"""
-    # Generate CA key
-    ca_key = ec.generate_private_key(ec.SECP256R1(), default_backend())
-    subject = issuer = x509.Name(
-        [
-            x509.NameAttribute(NameOID.COUNTRY_NAME, country),
-            x509.NameAttribute(NameOID.ORGANIZATION_NAME, framework),
-            x509.NameAttribute(NameOID.COMMON_NAME, f"{framework} Signing CA"),
-        ]
-    )
-
-    # Build the CA certificate
-    ca_cert = _ca_extensions_cert(
-        subject=subject,
-        issuer_name=subject,
-        issuer_key=ca_key,
-        signing_key=ca_key,
-        ca_path_length=None,
-    )
-    return ca_key, ca_cert
-
-
-def create_signing_issuer(
-    ca_cert: x509.Certificate, ca_key: ec.EllipticCurvePrivateKey
-) -> Tuple[ec.EllipticCurvePrivateKey, x509.Certificate]:
-    """Create an issuer certificate signed by the CA"""
-    # Generate issuer key
-    issuer_key = ec.generate_private_key(ec.SECP256R1(), default_backend())
-
-    # Build issuer subject
-    issuer_subject = x509.Name(
-        [
-            x509.NameAttribute(NameOID.COUNTRY_NAME, "GB"),
-            x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, "London"),
-            x509.NameAttribute(
-                NameOID.ORGANIZATION_NAME, "Energy Sector Trust Framework"
-            ),
-            x509.NameAttribute(
-                NameOID.COMMON_NAME, "Energy Sector Trust Framework Signing Issuer"
-            ),
-        ]
-    )
-    # Build the issuer certificate
-    issuer_cert = _ca_extensions_cert(
-        subject=issuer_subject,
-        issuer_name=ca_cert.subject,
-        issuer_key=issuer_key,
-        signing_key=ca_key,
-    )
-
-    return issuer_key, issuer_cert
-
-
-def sign_csr(
-    issuer_cert: x509.Certificate,
-    issuer_key: ec.EllipticCurvePrivateKey,
-    csr_pem: bytes,
-    roles: List[str],
-    application: str,
-    san_uri: str,
-    days_valid: int,
+def build_subject(
     country: str,
     state: str,
     organization_name: str,
     common_name: str,
-) -> x509.Certificate:
-    """Sign a user-provided CSR"""
-    csr = x509.load_pem_x509_csr(csr_pem, default_backend())
-    # Build the subject from provided arguments
-    # the csr is only used for the public key
-    subject = x509.Name(
+) -> x509.Name:
+    return x509.Name(
         [
             x509.NameAttribute(NameOID.COUNTRY_NAME, country),
             x509.NameAttribute(NameOID.STATE_OR_PROVINCE_NAME, state),
@@ -136,6 +69,55 @@ def sign_csr(
             x509.NameAttribute(NameOID.COMMON_NAME, common_name),
         ]
     )
+
+
+def create_signing_pair(
+    country: str = "GB",
+    state: str = "London",
+    framework: str = "Core",
+    use: str = "Client",
+    kind: str = "CA",
+    ca_cert: x509.Certificate | None = None,
+    ca_key: ec.EllipticCurvePrivateKey | None = None,
+) -> Tuple[ec.EllipticCurvePrivateKey, x509.Certificate]:
+    """Create a signing key certificate pair"""
+    key = ec.generate_private_key(ec.SECP256R1(), default_backend())
+    description = f"{framework} Trust Framework"
+    subject_name = build_subject(
+        country, state, description, f"{description} {use} {kind}"
+    )
+    if ca_cert is None or ca_key is None:
+        issuer = subject_name
+        ca_key = key
+        path_length = None
+    else:
+        issuer = ca_cert.subject
+        path_length = 0
+
+    # Build the certificate
+    cert = _ca_extensions_cert(
+        subject=subject_name,
+        issuer_name=issuer,
+        issuer_key=key,
+        signing_key=ca_key,
+        ca_path_length=path_length,
+    )
+    return key, cert
+
+
+def sign_csr(
+    issuer_cert: x509.Certificate,
+    issuer_key: ec.EllipticCurvePrivateKey,
+    csr_pem: bytes,
+    days_valid: int,
+    subject: x509.Name,
+    roles: List[str] | None = None,
+    application: str | None = None,
+    server: bool = False,
+) -> x509.Certificate:
+    """Sign a user-provided CSR"""
+    csr = x509.load_pem_x509_csr(csr_pem, default_backend())
+
     # Build the application certificate
     cert_builder = (
         x509.CertificateBuilder()
@@ -144,10 +126,38 @@ def sign_csr(
         .public_key(csr.public_key())
         .not_valid_before(datetime.utcnow())
         .not_valid_after(datetime.utcnow() + timedelta(days=days_valid))
-        .add_extension(
-            x509.SubjectAlternativeName([x509.UniformResourceIdentifier(san_uri)]),
+    )
+    if server:
+        cert_builder = cert_builder.add_extension(
+            x509.ExtendedKeyUsage([x509.oid.ExtendedKeyUsageOID.SERVER_AUTH]),
+            critical=True,
+        )
+        key_encipherment = True
+    else:
+        organisation_name = str(
+            subject.get_attributes_for_oid(NameOID.ORGANIZATION_NAME)[0].value
+        )
+        cert_builder = cert_builder.add_extension(
+            x509.SubjectAlternativeName(
+                [x509.UniformResourceIdentifier(organisation_name)]
+            ),
             critical=False,
         )
+        key_encipherment = False
+    # Both certificates have digital signature, only the server certificate has key encipherment
+    cert_builder = cert_builder.add_extension(
+        x509.KeyUsage(
+            digital_signature=True,
+            key_cert_sign=False,
+            crl_sign=False,
+            key_agreement=False,
+            content_commitment=False,
+            encipher_only=False,
+            decipher_only=False,
+            key_encipherment=key_encipherment,
+            data_encipherment=False,
+        ),
+        critical=True,
     )
     if roles:
         cert_builder = encode_roles(cert_builder, roles)

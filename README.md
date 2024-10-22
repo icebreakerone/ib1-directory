@@ -66,3 +66,29 @@ from ib1 import directory
         )
 ...
 ```
+
+## Commands for generating certificates
+
+The included cli can generate CA and issuer key certificate pairs suitable for signing client and server CSR requests in the IB1 Trust Framework.
+
+### Generate a CA key and certificate
+
+```bash
+Usage: ib1-directory create-ca [OPTIONS]
+
+  Generate a server signing CA key and certificate and an issuer key and
+  certificate pair signed by the CA then saves all files to disk
+
+Options:
+  -u, --usage [client|server]  Choose server or client CA
+  -c, --country TEXT           Country to use for certificate generation
+  -s, --state TEXT             State to use for certificate generation
+  -f, --framework TEXT         Framework this certificate is for
+  --help                       Show this message and exit.
+```
+
+eg. to create a server CA key and certificate for the Core Trust Framework:
+
+```bash
+poetry run ib1-directory create-ca -u server -f Core
+```

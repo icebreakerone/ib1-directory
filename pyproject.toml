@@ -6,6 +6,9 @@ authors = ["Kip Parker <kip.parker@icebreakerone.org>"]
 readme = "README.md"
 packages = [{include = "ib1", from = "src"}]
 
+[tool.poetry.scripts]
+ib1-directory = "ib1.directory.cli:cli"
+
 [tool.poetry.dependencies]
 python = "^3.10"
 cryptography = "^43.0.1"
