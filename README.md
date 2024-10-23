@@ -92,3 +92,47 @@ eg. to create a server CA key and certificate for the Core Trust Framework:
 ```bash
 poetry run ib1-directory create-ca -u server -f Core
 ```
+
+### Create test client and server certficates
+
+Client:
+
+```bash
+Usage: ib1-directory create-client-certificates [OPTIONS]
+
+  Create a private key and use it generate a CSR, then sign the CSR with a CA
+  key and certificate.
+
+  Saves the private key, CSR, certificate and bundle to disk.
+
+Options:
+  --issuer-key-file FILENAME   Issuer key file
+  --issuer-cert-file FILENAME  Issuer certificate file
+  --member_uri TEXT            Member uri
+  --organization_name TEXT     Organization name
+  --country TEXT               Country
+  --state TEXT                 State
+  -r, --role TEXT              Client roles
+  --application_uri TEXT       Application uri
+  --help                       Show this message and exit.
+```
+
+Server:
+
+```bash
+Usage: ib1-directory create-server-certificates [OPTIONS]
+
+  Create a private key and use it generate a CSR, then sign the CSR with a CA
+  key and certificate.
+
+  Saves the private key, CSR, certificate and bundle to disk.
+
+Options:
+  --issuer-key-file FILENAME   Issuer key file
+  --issuer-cert-file FILENAME  Issuer certificate file
+  --domain TEXT                Domain name
+  --trust_framework TEXT       Trust framework
+  --country TEXT               Country
+  --state TEXT                 State
+  --help                       Show this message and exit.
+```
