@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "ib1-directory"
-version = "0.1.2"
+version = "0.2"
 description = "A library to simplify working with the IB1 Trust Framework directory"
 authors = ["Kip Parker <kip.parker@icebreakerone.org>"]
 readme = "README.md"
