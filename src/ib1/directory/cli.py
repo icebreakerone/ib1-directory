@@ -187,5 +187,94 @@ def create_client_certificates(
         f.write(bundle)
 
 
+# Write a command create server certificates with similar functionality except we must accept a domain name rather than application name, and we don't need to encode rules or applicaiton_uri
+@cli.command()
+@click.option(
+    "--issuer-key-file",
+    type=click.File("rb"),
+    help="Issuer key file",
+    default="server-signing-issuer-key.pem",
+)
+@click.option(
+    "--issuer-cert-file",
+    type=click.File("rb"),
+    help="Issuer certificate file",
+    default="server-signing-issuer-cert.pem",
+)
+@click.option(
+    "--domain",
+    type=str,
+    help="Domain name",
+    default="http://tf-member.org",
+)
+@click.option(
+    "--trust_framework",
+    type=str,
+    help="Trust framework",
+    default="Core Trust Framework",
+)
+@click.option("--country", type=str, help="Country", default="GB")
+@click.option("--state", type=str, help="State", default="London")
+def create_server_certificates(
+    issuer_key_file: click.Path,
+    issuer_cert_file: click.Path,
+    domain: str,
+    trust_framework: str,
+    country: str,
+    state: str,
+):
+    """
+    Create a private key and use it generate a CSR, then sign the CSR with a CA key and certificate.
+
+    Saves the private key, CSR, certificate and bundle to disk.
+    """
+
+    with open(issuer_cert_file.name, "rb") as f:
+        issuer_cert_pem = f.read()
+    with open(issuer_key_file.name, "rb") as f:
+        issuer_key_pem = f.read()
+    issuer_cert = load_certificate(issuer_cert_pem)
+    issuer_key = load_key(issuer_key_pem)
+    server_key = generate_key()
+    subject = build_subject(
+        country=country,
+        state=state,
+        organization_name=trust_framework,
+        common_name=domain,
+    )
+    csr = (
+        x509.CertificateSigningRequestBuilder()
+        .subject_name(subject)
+        .sign(server_key, hashes.SHA256())
+    )
+    csr_pem = csr.public_bytes(serialization.Encoding.PEM)
+    # Create a CSR using the arguments given
+    server_certificate = sign_csr(
+        issuer_cert=issuer_cert,
+        issuer_key=issuer_key,
+        csr_pem=csr_pem,
+        subject=subject,
+        server=True,
+    )
+    server_certificate_pem = server_certificate.public_bytes(serialization.Encoding.PEM)
+    bundle = get_bundle(server_certificate_pem, issuer_cert_pem)
+    file_prefix = domain.replace("/", "").replace(":", "")
+    # Write private key to disk as application-key.pem
+    with open(f"{file_prefix}-key.pem", "wb") as f:
+        f.write(
+            issuer_key.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.TraditionalOpenSSL,
+                encryption_algorithm=serialization.NoEncryption(),
+            )
+        )
+    # Write certifivate PEM to disk as application-cert.pem
+    with open(f"{file_prefix}-cert.pem", "wb") as f:
+        f.write(server_certificate_pem)
+    # Write bundle to disk as application-bundle.pem
+    with open(f"{file_prefix}-bundle.pem", "wb") as f:
+        f.write(bundle)
+
+
 if __name__ == "__main__":
     cli()
