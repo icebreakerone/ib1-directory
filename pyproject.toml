@@ -1,15 +1,19 @@
 [tool.poetry]
 name = "ib1-directory"
-version = "0.1.2"
+version = "0.2"
 description = "A library to simplify working with the IB1 Trust Framework directory"
 authors = ["Kip Parker <kip.parker@icebreakerone.org>"]
 readme = "README.md"
 packages = [{include = "ib1", from = "src"}]
 
+[tool.poetry.scripts]
+ib1-directory = "ib1.directory.cli:cli"
+
 [tool.poetry.dependencies]
 python = "^3.10"
 cryptography = "^43.0.1"
 asn1crypto = "^1.5.1"
+click = "^8.1.7"
 
 
 [tool.poetry.group.dev.dependencies]
