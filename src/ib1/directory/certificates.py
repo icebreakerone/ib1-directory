@@ -220,38 +220,34 @@ def sign_csr(
         .not_valid_after(datetime.utcnow() + timedelta(days=days_valid))
         .serial_number(x509.random_serial_number())
     )
+
     if server:
         cert_builder = cert_builder.add_extension(
             x509.ExtendedKeyUsage([x509.oid.ExtendedKeyUsageOID.SERVER_AUTH]),
             critical=True,
         )
-        key_encipherment = True
-    else:
-        organisation_name = str(
-            subject.get_attributes_for_oid(NameOID.ORGANIZATION_NAME)[0].value
-        )
         cert_builder = cert_builder.add_extension(
-            x509.SubjectAlternativeName(
-                [x509.UniformResourceIdentifier(organisation_name)]
+            x509.KeyUsage(
+                digital_signature=True,
+                key_cert_sign=False,
+                crl_sign=False,
+                key_agreement=False,
+                content_commitment=False,
+                encipher_only=False,
+                decipher_only=False,
+                key_encipherment=True,
+                data_encipherment=False,
             ),
+            critical=True,
+        )
+    else:
+        common_name = str(subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value)
+        print(common_name)
+        cert_builder = cert_builder.add_extension(
+            x509.SubjectAlternativeName([x509.UniformResourceIdentifier(common_name)]),
             critical=False,
         )
-        key_encipherment = False
-    # Both certificates have digital signature, only the server certificate has key encipherment
-    cert_builder = cert_builder.add_extension(
-        x509.KeyUsage(
-            digital_signature=True,
-            key_cert_sign=False,
-            crl_sign=False,
-            key_agreement=False,
-            content_commitment=False,
-            encipher_only=False,
-            decipher_only=False,
-            key_encipherment=key_encipherment,
-            data_encipherment=False,
-        ),
-        critical=True,
-    )
+
     if roles:
         cert_builder = encode_roles(cert_builder, roles)
     if application:
