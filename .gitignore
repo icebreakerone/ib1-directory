@@ -34,3 +34,4 @@ poetry.lock
 dist/
 
 .coverage
+scripts/*.pem

@@ -23,8 +23,8 @@ def cli():
 @click.option(
     "-u",
     "--usage",
-    type=click.Choice(["client", "server"]),
-    help="Choose server or client CA",
+    type=click.Choice(["signing", "client", "server"]),
+    help="Choose signing, server or client CA",
     default="client",
 )
 @click.option(
@@ -55,10 +55,14 @@ def create_ca(usage: str, country: str, state: str, framework: str):
         ca_cert=ca_certificate,
         ca_key=ca_key,
     )
-    with open(f"{usage.lower()}-signing-ca-cert.pem", "wb") as f:
+
+    ca_certificate_name = f"{usage.lower()}-ca-cert.pem"
+    with open(ca_certificate_name, "wb") as f:
         f.write(ca_certificate.public_bytes(serialization.Encoding.PEM))
-    print(f"CA cert: {usage.lower()}-signing-ca-cert.pem")
-    with open(f"{usage.lower()}-signing-ca-key.pem", "wb") as f:
+    print(f"CA cert: {ca_certificate_name}")
+
+    ca_key_name = f"{usage.lower()}-ca-key.pem"
+    with open(ca_key_name, "wb") as f:
         f.write(
             ca_key.private_bytes(
                 encoding=serialization.Encoding.PEM,
@@ -66,11 +70,14 @@ def create_ca(usage: str, country: str, state: str, framework: str):
                 encryption_algorithm=serialization.NoEncryption(),
             )
         )
-    print(f"CA key: {usage.lower()}-signing-ca-key.pem")
-    with open(f"{usage.lower()}-signing-issuer-cert.pem", "wb") as f:
+    print(f"CA key: {ca_key_name}")
+
+    issuer_certificate_name = f"{usage.lower()}-issuer-cert.pem"
+    with open(issuer_certificate_name, "wb") as f:
         f.write(issuer_certificate.public_bytes(serialization.Encoding.PEM))
-    print(f"Issuer cert: {usage.lower()}-signing-issuer-cert.pem")
-    with open(f"{usage.lower()}-signing-issuer-key.pem", "wb") as f:
+    print(f"Issuer cert: {issuer_certificate_name}")
+
+    with open(f"{usage.lower()}-issuer-key.pem", "wb") as f:
         f.write(
             issuer_key.private_bytes(
                 encoding=serialization.Encoding.PEM,
@@ -78,7 +85,7 @@ def create_ca(usage: str, country: str, state: str, framework: str):
                 encryption_algorithm=serialization.NoEncryption(),
             )
         )
-    print(f"Issuer key: {usage.lower()}-signing-issuer-key.pem")
+    print(f"Issuer key: {usage.lower()}-issuer-key.pem")
 
 
 @cli.command()
@@ -86,13 +93,13 @@ def create_ca(usage: str, country: str, state: str, framework: str):
     "--issuer-key-file",
     type=click.File("rb"),
     help="Issuer key file",
-    default="client-signing-issuer-key.pem",
+    default="client-issuer-key.pem",
 )
 @click.option(
     "--issuer-cert-file",
     type=click.File("rb"),
     help="Issuer certificate file",
-    default="client-signing-issuer-cert.pem",
+    default="client-issuer-cert.pem",
 )
 @click.option(
     "--member_uri",
@@ -104,7 +111,7 @@ def create_ca(usage: str, country: str, state: str, framework: str):
     "--organization_name",
     type=str,
     help="Organization name",
-    default="Demo Carbon Accounting Platform",
+    default="Demo Carbon Accounting Provider",
 )
 @click.option("--country", type=str, help="Country", default="GB")
 @click.option("--state", type=str, help="State", default="London")
@@ -193,13 +200,13 @@ def create_client_certificates(
     "--issuer-key-file",
     type=click.File("rb"),
     help="Issuer key file",
-    default="server-signing-issuer-key.pem",
+    default="server-issuer-key.pem",
 )
 @click.option(
     "--issuer-cert-file",
     type=click.File("rb"),
     help="Issuer certificate file",
-    default="server-signing-issuer-cert.pem",
+    default="server-issuer-cert.pem",
 )
 @click.option(
     "--domain",

@@ -80,7 +80,7 @@ Usage: ib1-directory create-ca [OPTIONS]
   certificate pair signed by the CA then saves all files to disk
 
 Options:
-  -u, --usage [client|server]  Choose server or client CA
+  -u, --usage [signing|client|server]  Choose signing, server or client CA
   -c, --country TEXT           Country to use for certificate generation
   -s, --state TEXT             State to use for certificate generation
   -f, --framework TEXT         Framework this certificate is for
