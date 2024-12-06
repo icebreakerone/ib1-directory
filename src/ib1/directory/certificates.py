@@ -220,6 +220,16 @@ def sign_csr(
         .not_valid_after(datetime.utcnow() + timedelta(days=days_valid))
         .serial_number(x509.random_serial_number())
     )
+    # Add SKI (Subject Key Identifier)
+    subject_ski = x509.SubjectKeyIdentifier.from_public_key(csr.public_key())
+    cert_builder = cert_builder.add_extension(subject_ski, critical=False)
+
+    # Add AKI (Authority Key Identifier)
+    issuer_public_key = issuer_cert.public_key()
+    authority_aki = x509.AuthorityKeyIdentifier.from_issuer_public_key(
+        issuer_public_key
+    )
+    cert_builder = cert_builder.add_extension(authority_aki, critical=False)
 
     if server:
         cert_builder = cert_builder.add_extension(
