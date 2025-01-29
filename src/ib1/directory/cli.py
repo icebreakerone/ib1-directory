@@ -180,7 +180,7 @@ def create_client_certificates(
     # Write private key to disk as application-key.pem
     with open(f"{file_prefix}-key.pem", "wb") as f:
         f.write(
-            issuer_key.private_bytes(
+            client_key.private_bytes(
                 encoding=serialization.Encoding.PEM,
                 format=serialization.PrivateFormat.TraditionalOpenSSL,
                 encryption_algorithm=serialization.NoEncryption(),
@@ -269,7 +269,7 @@ def create_server_certificates(
     # Write private key to disk as application-key.pem
     with open(f"{file_prefix}-key.pem", "wb") as f:
         f.write(
-            issuer_key.private_bytes(
+            server_key.private_bytes(
                 encoding=serialization.Encoding.PEM,
                 format=serialization.PrivateFormat.TraditionalOpenSSL,
                 encryption_algorithm=serialization.NoEncryption(),
