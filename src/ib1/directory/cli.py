@@ -102,13 +102,13 @@ def create_ca(usage: str, country: str, state: str, framework: str):
     default="client-issuer-cert.pem",
 )
 @click.option(
-    "--member_uri",
+    "--member-uri",
     type=str,
     help="Member uri",
     default="https://directory.estf.ib1.org/member/2876152",
 )
 @click.option(
-    "--organization_name",
+    "--organization-name",
     type=str,
     help="Organization name",
     default="Demo Carbon Accounting Provider",
@@ -125,7 +125,7 @@ def create_ca(usage: str, country: str, state: str, framework: str):
     ],
 )
 @click.option(
-    "--application_uri",
+    "--application-uri",
     type=str,
     help="Application uri",
     default="https://directory.estf.ib1.org/scheme/electricty/application/26241",
@@ -215,7 +215,7 @@ def create_client_certificates(
     default="http://tf-member.org",
 )
 @click.option(
-    "--trust_framework",
+    "--trust-framework",
     type=str,
     help="Trust framework",
     default="Core Trust Framework",
