@@ -108,12 +108,12 @@ Usage: ib1-directory create-client-certificates [OPTIONS]
 Options:
   --issuer-key-file FILENAME   Issuer key file
   --issuer-cert-file FILENAME  Issuer certificate file
-  --member_uri TEXT            Member uri
-  --organization_name TEXT     Organization name
+  --member-uri TEXT            Member uri
+  --organization-name TEXT     Organization name
   --country TEXT               Country
   --state TEXT                 State
   -r, --role TEXT              Client roles
-  --application_uri TEXT       Application uri
+  --application-uri TEXT       Application uri
   --help                       Show this message and exit.
 ```
 
@@ -131,7 +131,7 @@ Options:
   --issuer-key-file FILENAME   Issuer key file
   --issuer-cert-file FILENAME  Issuer certificate file
   --domain TEXT                Domain name
-  --trust_framework TEXT       Trust framework
+  --trust-framework TEXT       Trust framework
   --country TEXT               Country
   --state TEXT                 State
   --help                       Show this message and exit.
