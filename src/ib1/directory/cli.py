@@ -9,7 +9,6 @@ from ib1.directory.certificates import (
     build_subject,
     sign_csr,
     generate_key,
-    get_bundle,
 )
 
 
@@ -102,13 +101,13 @@ def create_ca(usage: str, country: str, state: str, framework: str):
     default="client-issuer-cert.pem",
 )
 @click.option(
-    "--member_uri",
+    "--member-uri",
     type=str,
     help="Member uri",
     default="https://directory.estf.ib1.org/member/2876152",
 )
 @click.option(
-    "--organization_name",
+    "--organization-name",
     type=str,
     help="Organization name",
     default="Demo Carbon Accounting Provider",
@@ -125,12 +124,18 @@ def create_ca(usage: str, country: str, state: str, framework: str):
     ],
 )
 @click.option(
-    "--application_uri",
+    "--application-uri",
     type=str,
     help="Application uri",
     default="https://directory.estf.ib1.org/scheme/electricty/application/26241",
 )
-def create_client_certificates(
+@click.option(
+    "--cert-type",
+    type=str,
+    help="Client or signing",
+    default="client",
+)
+def create_application_certificates(
     issuer_key_file: click.Path,
     issuer_cert_file: click.Path,
     member_uri: str,
@@ -139,11 +144,12 @@ def create_client_certificates(
     state: str,
     role: list[str],
     application_uri: str,
+    cert_type: str,
 ):
     """
     Create a private key and use it generate a CSR, then sign the CSR with a CA key and certificate.
 
-    Saves the private key, CSR, certificate and bundle to disk.
+    Saves the private key, CSR and certificate to disk.
     """
 
     with open(issuer_cert_file.name, "rb") as f:
@@ -175,10 +181,9 @@ def create_client_certificates(
         application=application_uri,
     )
     client_certificate_pem = client_certificate.public_bytes(serialization.Encoding.PEM)
-    bundle = get_bundle(client_certificate_pem, issuer_cert_pem)
     file_prefix = organization_name.lower().replace(" ", "-")
     # Write private key to disk as application-key.pem
-    with open(f"{file_prefix}-key.pem", "wb") as f:
+    with open(f"{file_prefix}-{cert_type}-key.pem", "wb") as f:
         f.write(
             client_key.private_bytes(
                 encoding=serialization.Encoding.PEM,
@@ -187,11 +192,8 @@ def create_client_certificates(
             )
         )
     # Write certifivate PEM to disk as application-cert.pem
-    with open(f"{file_prefix}-cert.pem", "wb") as f:
+    with open(f"{file_prefix}-{cert_type}-cert.pem", "wb") as f:
         f.write(client_certificate_pem)
-    # Write bundle to disk as application-bundle.pem
-    with open(f"{file_prefix}-bundle.pem", "wb") as f:
-        f.write(bundle)
 
 
 # Write a command create server certificates with similar functionality except we must accept a domain name rather than application name, and we don't need to encode rules or applicaiton_uri
@@ -215,7 +217,7 @@ def create_client_certificates(
     default="http://tf-member.org",
 )
 @click.option(
-    "--trust_framework",
+    "--trust-framework",
     type=str,
     help="Trust framework",
     default="Core Trust Framework",
@@ -233,7 +235,7 @@ def create_server_certificates(
     """
     Create a private key and use it generate a CSR, then sign the CSR with a CA key and certificate.
 
-    Saves the private key, CSR, certificate and bundle to disk.
+    Saves the private key, CSR and certificate to disk.
     """
 
     with open(issuer_cert_file.name, "rb") as f:
@@ -264,7 +266,6 @@ def create_server_certificates(
         server=True,
     )
     server_certificate_pem = server_certificate.public_bytes(serialization.Encoding.PEM)
-    bundle = get_bundle(server_certificate_pem, issuer_cert_pem)
     file_prefix = domain.replace("/", "").replace(":", "")
     # Write private key to disk as application-key.pem
     with open(f"{file_prefix}-key.pem", "wb") as f:
@@ -278,9 +279,6 @@ def create_server_certificates(
     # Write certifivate PEM to disk as application-cert.pem
     with open(f"{file_prefix}-cert.pem", "wb") as f:
         f.write(server_certificate_pem)
-    # Write bundle to disk as application-bundle.pem
-    with open(f"{file_prefix}-bundle.pem", "wb") as f:
-        f.write(bundle)
 
 
 if __name__ == "__main__":
