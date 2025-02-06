@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+import datetime
 from typing import Tuple, List
 from io import BytesIO
 
@@ -18,6 +18,9 @@ def _ca_extensions_cert(
     issuer_key: ec.EllipticCurvePrivateKey,
     signing_key: ec.EllipticCurvePrivateKey,
     ca_path_length: int | None = 0,
+    valid_from: datetime = datetime.datetime.now(datetime.timezone.utc),
+    valid_to: datetime = datetime.datetime.now(datetime.timezone.utc)
+    + datetime.timedelta(days=365),
 ) -> x509.Certificate:
     return (
         x509.CertificateBuilder()
@@ -25,8 +28,8 @@ def _ca_extensions_cert(
         .issuer_name(issuer_name)
         .public_key(issuer_key.public_key())
         .serial_number(x509.random_serial_number())
-        .not_valid_before(datetime.utcnow())
-        .not_valid_after(datetime.utcnow() + timedelta(days=365))
+        .not_valid_before(valid_from)
+        .not_valid_after(valid_to)
         .add_extension(
             x509.SubjectKeyIdentifier.from_public_key(issuer_key.public_key()),
             critical=False,
@@ -118,6 +121,10 @@ def generate_key():
     return ec.generate_private_key(ec.SECP256R1(), default_backend())
 
 
+def generate_root_key():
+    return ec.generate_private_key(ec.SECP384R1(), default_backend())
+
+
 def create_signing_pair(
     country: str = "GB",
     state: str = "London",
@@ -142,7 +149,16 @@ def create_signing_pair(
     Returns:
         Tuple[ec.EllipticCurvePrivateKey, x509.Certificate]: The generated private key and certificate.
     """
-    key = generate_key()
+    if kind == "CA":
+        key = generate_root_key()
+        valid_to = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(
+            days=9132
+        )
+    else:
+        key = generate_key()
+        valid_to = datetime.datetime.now(datetime.timezone.utc) + datetime.timedelta(
+            days=365
+        )
     description = f"{framework} Trust Framework"
     subject_name = build_subject(
         country, state, description, f"{description} {use} {kind}"
@@ -163,6 +179,7 @@ def create_signing_pair(
             issuer_key=key,
             signing_key=ca_key,
             ca_path_length=path_length,
+            valid_to=valid_to,
         )
     return key, cert
 
@@ -217,7 +234,7 @@ def sign_csr(
         .issuer_name(issuer_cert.subject)
         .public_key(csr.public_key())
         .not_valid_before(datetime.utcnow())
-        .not_valid_after(datetime.utcnow() + timedelta(days=days_valid))
+        .not_valid_after(datetime.utcnow() + datetime.timedelta(days=days_valid))
         .serial_number(x509.random_serial_number())
     )
     # Add SKI (Subject Key Identifier)
