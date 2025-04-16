@@ -109,11 +109,11 @@ Options:
   --issuer-key-file FILENAME   Issuer key file
   --issuer-cert-file FILENAME  Issuer certificate file
   --member-uri TEXT            Member uri
+  --application-uri TEXT       Application uri
   --organization-name TEXT     Organization name
   --country TEXT               Country
   --state TEXT                 State
   -r, --role TEXT              Client roles
-  --application-uri TEXT       Application uri
   --help                       Show this message and exit.
 ```
 

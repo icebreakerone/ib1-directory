@@ -9,7 +9,7 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric.types import PrivateKeyTypes
 
-from ib1.directory.extensions import encode_roles, encode_application
+from ib1.directory.extensions import encode_roles, encode_member
 
 
 def _ca_extensions_cert(
@@ -22,7 +22,7 @@ def _ca_extensions_cert(
     valid_to: datetime = datetime.datetime.now(datetime.timezone.utc)
     + datetime.timedelta(days=365),
 ) -> x509.Certificate:
-    return (
+    builder = (
         x509.CertificateBuilder()
         .subject_name(subject)
         .issuer_name(issuer_name)
@@ -57,8 +57,9 @@ def _ca_extensions_cert(
             ),
             critical=True,
         )
-        .sign(signing_key, hashes.SHA256(), default_backend())
     )
+
+    return builder.sign(signing_key, hashes.SHA256(), default_backend())
 
 
 def load_certificate(cert_pem: bytes) -> x509.Certificate:
@@ -205,7 +206,7 @@ def sign_csr(
     csr_pem: bytes,
     subject: x509.Name,
     roles: List[str] | None = None,
-    application: str | None = None,
+    member: str | None = None,
     server: bool = False,
     days_valid: int = 365,
 ) -> x509.Certificate:
@@ -218,8 +219,8 @@ def sign_csr(
         csr_pem (bytes): CSR in PEM format.
         days_valid (int): Number of days the certificate is valid for.
         subject (x509.Name): Subject name for the certificate.
-        roles (List[str], optional): Roles to encode in the certificate.
-        application (str, optional): Application to encode in the certificate.
+        roles (List[str], optional): Roles to encode in the certificate as a custom extension
+        member (str, optional): Member to encode in the certificate as a custom extension
         server (bool, optional): Whether the certificate is for a server.
 
     Returns:
@@ -233,8 +234,11 @@ def sign_csr(
         .subject_name(subject)
         .issuer_name(issuer_cert.subject)
         .public_key(csr.public_key())
-        .not_valid_before(datetime.utcnow())
-        .not_valid_after(datetime.utcnow() + datetime.timedelta(days=days_valid))
+        .not_valid_before(datetime.datetime.now(datetime.timezone.utc))
+        .not_valid_after(
+            datetime.datetime.now(datetime.timezone.utc)
+            + datetime.timedelta(days=days_valid)
+        )
         .serial_number(x509.random_serial_number())
     )
     # Add SKI (Subject Key Identifier)
@@ -269,7 +273,6 @@ def sign_csr(
         )
     else:
         common_name = str(subject.get_attributes_for_oid(NameOID.COMMON_NAME)[0].value)
-        print(common_name)
         cert_builder = cert_builder.add_extension(
             x509.SubjectAlternativeName([x509.UniformResourceIdentifier(common_name)]),
             critical=False,
@@ -277,8 +280,8 @@ def sign_csr(
 
     if roles:
         cert_builder = encode_roles(cert_builder, roles)
-    if application:
-        cert_builder = encode_application(cert_builder, application)
+    if member:
+        cert_builder = encode_member(cert_builder, member)
 
     cert = cert_builder.sign(issuer_key, hashes.SHA256(), default_backend())
     return cert
