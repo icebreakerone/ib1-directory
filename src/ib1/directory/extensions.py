@@ -5,6 +5,7 @@ from ib1.directory import der
 
 ROLE_IDENTIFIER = "1.3.6.1.4.1.62329.1.1"
 APPLICATION_IDENTIFIER = "1.3.6.1.4.1.62329.1.2"
+MEMBER_IDENTIFIER = "1.3.6.1.4.1.62329.1.3"
 
 
 def _add_extension(
@@ -64,7 +65,7 @@ def encode_roles(cert_builder: x509.CertificateBuilder, roles: list[str]):
     return _add_extension(cert_builder, ROLE_IDENTIFIER, der.encode_sequence(roles))
 
 
-def encode_application(cert_builder: x509.CertificateBuilder, application: str):
+def encode_member(cert_builder: x509.CertificateBuilder, member: str):
     """
     Encode application information into the certificate builder as an extension.
 
@@ -75,9 +76,7 @@ def encode_application(cert_builder: x509.CertificateBuilder, application: str):
     Returns:
         x509.CertificateBuilder: The updated certificate builder with the application extension.
     """
-    return _add_extension(
-        cert_builder, APPLICATION_IDENTIFIER, der.encode_string(application)
-    )
+    return _add_extension(cert_builder, MEMBER_IDENTIFIER, der.encode_string(member))
 
 
 def decode_roles(cert: x509.Certificate) -> list[str]:
@@ -102,9 +101,9 @@ def decode_roles(cert: x509.Certificate) -> list[str]:
     return der.decode_sequence(role_der)
 
 
-def decode_application(cert: x509.Certificate) -> str:
+def decode_member(cert: x509.Certificate) -> str:
     """
-    Decode application information from a certificate.
+    Decode member information from a certificate.
 
     Args:
         cert (x509.Certificate): The certificate.
@@ -116,7 +115,7 @@ def decode_application(cert: x509.Certificate) -> str:
         CertificateExtensionError: If the certificate does not include application information.
     """
     try:
-        application_der = _extension_value(cert, APPLICATION_IDENTIFIER)
+        application_der = _extension_value(cert, MEMBER_IDENTIFIER)
     except x509.ExtensionNotFound:
         raise CertificateExtensionError(
             "Client certificate does not include application information"

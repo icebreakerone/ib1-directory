@@ -9,7 +9,7 @@ from cryptography.hazmat.primitives.asymmetric import ec
 from cryptography.hazmat.primitives import hashes, serialization
 from cryptography.hazmat.primitives.asymmetric.types import PrivateKeyTypes
 
-from ib1.directory.extensions import encode_roles, encode_application
+from ib1.directory.extensions import encode_roles, encode_member
 
 
 def _ca_extensions_cert(
@@ -278,7 +278,7 @@ def sign_csr(
     if roles:
         cert_builder = encode_roles(cert_builder, roles)
     if application:
-        cert_builder = encode_application(cert_builder, application)
+        cert_builder = encode_member(cert_builder, application)
 
     cert = cert_builder.sign(issuer_key, hashes.SHA256(), default_backend())
     return cert
