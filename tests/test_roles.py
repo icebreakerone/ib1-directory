@@ -26,11 +26,11 @@ def test_encode_roles(certificate_builder):  # noqa: F811
 
 def test_encode_member(certificate_builder):  # noqa: F811
     cert_builder, private_key = certificate_builder
-    application = "https://directory.core.trust.ib1.org/member/71212388"
-    cert_builder = encode_member(cert_builder, application)
+    member = "https://directory.core.trust.ib1.org/member/71212388"
+    cert_builder = encode_member(cert_builder, member)
     cert = cert_builder.sign(private_key, hashes.SHA256())
-    decoded_application = decode_member(cert)
-    assert decoded_application == application
+    decoded_member = decode_member(cert)
+    assert decoded_member == member
 
 
 def test_decode_roles_missing_extension(certificate_builder):  # noqa: F811
@@ -40,7 +40,7 @@ def test_decode_roles_missing_extension(certificate_builder):  # noqa: F811
         decode_roles(cert)
 
 
-def test_decode_application_missing_extension(certificate_builder):  # noqa: F811
+def test_decode_member_missing_extension(certificate_builder):  # noqa: F811
     cert_builder, private_key = certificate_builder
     cert = cert_builder.sign(private_key, hashes.SHA256())
     with pytest.raises(CertificateExtensionError):

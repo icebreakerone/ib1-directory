@@ -108,6 +108,12 @@ def create_ca(usage: str, country: str, state: str, framework: str):
     default="https://directory.estf.ib1.org/member/2876152",
 )
 @click.option(
+    "--application-uri",
+    type=str,
+    help="Application uri",
+    default="https://directory.estf.ib1.org/scheme/electricty/application/26241",
+)
+@click.option(
     "--organization-name",
     type=str,
     help="Organization name",
@@ -124,21 +130,15 @@ def create_ca(usage: str, country: str, state: str, framework: str):
         "https://registry.estf.ib1.org/scheme/electricty/role/supply-voltage-reader"
     ],
 )
-@click.option(
-    "--application-uri",
-    type=str,
-    help="Application uri",
-    default="https://directory.estf.ib1.org/scheme/electricty/application/26241",
-)
 def create_client_certificates(
     issuer_key_file: click.Path,
     issuer_cert_file: click.Path,
     member_uri: str,
+    application_uri: str,
     organization_name: str,
     country: str,
     state: str,
     role: list[str],
-    application_uri: str,
 ):
     """
     Create a private key and use it generate a CSR, then sign the CSR with a CA key and certificate.
@@ -157,7 +157,7 @@ def create_client_certificates(
         country=country,
         state=state,
         organization_name=organization_name,
-        common_name=member_uri,
+        common_name=application_uri,
     )
     csr = (
         x509.CertificateSigningRequestBuilder()
@@ -172,7 +172,7 @@ def create_client_certificates(
         csr_pem=csr_pem,
         subject=subject,
         roles=role,
-        application=application_uri,
+        member=member_uri,
     )
     client_certificate_pem = client_certificate.public_bytes(serialization.Encoding.PEM)
     bundle = get_bundle(client_certificate_pem, issuer_cert_pem)
@@ -194,7 +194,6 @@ def create_client_certificates(
         f.write(bundle)
 
 
-# Write a command create server certificates with similar functionality except we must accept a domain name rather than application name, and we don't need to encode rules or applicaiton_uri
 @cli.command()
 @click.option(
     "--issuer-key-file",
