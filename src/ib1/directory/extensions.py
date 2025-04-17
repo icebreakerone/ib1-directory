@@ -122,6 +122,28 @@ def decode_member(cert: x509.Certificate) -> str:
     return der.decode_string(member_der)
 
 
+def decode_application(cert: x509.Certificate) -> str:
+    """
+    Decode application information from a certificate.
+
+    Args:
+        cert (x509.Certificate): The certificate.
+
+    Returns:
+        str: The decoded application information.
+
+    Raises:
+        CertificateExtensionError: If the certificate does not include application information.
+    """
+    san = cert.extensions.get_extension_for_class(x509.SubjectAlternativeName)
+    try:
+        return san.value.get_values_for_type(x509.GeneralName)[0]
+    except KeyError:
+        raise CertificateExtensionError(
+            "Client certificate does not include application information"
+        )
+
+
 def require_role(role_name: str, cert: x509.Certificate) -> bool:
     """
     Check that the certificate includes the given role, raising an exception if not.

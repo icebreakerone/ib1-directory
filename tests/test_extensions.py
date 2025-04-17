@@ -1,5 +1,6 @@
 import pytest
 from cryptography.hazmat.primitives import hashes
+from cryptography import x509
 from ib1.directory import CertificateRoleError, CertificateExtensionError
 
 from ib1.directory import (
@@ -10,6 +11,7 @@ from ib1.directory.extensions import (
     encode_member,
     decode_roles,
     decode_member,
+    decode_application,
 )
 
 from tests import certificate_builder  # noqa: F401
@@ -62,3 +64,15 @@ def test_require_role_missing(certificate_builder):  # noqa: F811
     cert = cert_builder.sign(private_key, hashes.SHA256())
     with pytest.raises(CertificateRoleError):
         require_role("admin", cert)
+
+
+def test_decode_application(certificate_builder):  # noqa: F811
+    test_uri = "https://directory.core.trust.ib1.org/application/71212388"
+    cert_builder, private_key = certificate_builder
+    cert_builder = cert_builder.add_extension(
+        x509.SubjectAlternativeName([x509.UniformResourceIdentifier(test_uri)]),
+        critical=False,
+    )
+    cert = cert_builder.sign(private_key, hashes.SHA256())
+    decoded_application = decode_application(cert)
+    assert decoded_application == test_uri
