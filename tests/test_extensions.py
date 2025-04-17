@@ -76,3 +76,10 @@ def test_decode_application(certificate_builder):  # noqa: F811
     cert = cert_builder.sign(private_key, hashes.SHA256())
     decoded_application = decode_application(cert)
     assert decoded_application == test_uri
+
+
+def test_decode_application_no_san(certificate_builder):
+    cert_builder, private_key = certificate_builder
+    cert = cert_builder.sign(private_key, hashes.SHA256())
+    with pytest.raises(CertificateExtensionError):
+        decode_application(cert)

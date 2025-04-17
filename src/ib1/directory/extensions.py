@@ -135,7 +135,12 @@ def decode_application(cert: x509.Certificate) -> str:
     Raises:
         CertificateExtensionError: If the certificate does not include application information.
     """
-    san = cert.extensions.get_extension_for_class(x509.SubjectAlternativeName)
+    try:
+        san = cert.extensions.get_extension_for_class(x509.SubjectAlternativeName)
+    except x509.ExtensionNotFound:
+        raise CertificateExtensionError(
+            "Client certificate does not include application information"
+        )
     try:
         return san.value.get_values_for_type(x509.GeneralName)[0]
     except KeyError:
