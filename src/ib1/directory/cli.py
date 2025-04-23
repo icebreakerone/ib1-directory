@@ -130,7 +130,13 @@ def create_ca(usage: str, country: str, state: str, framework: str):
         "https://registry.estf.ib1.org/scheme/electricty/role/supply-voltage-reader"
     ],
 )
-def create_client_certificates(
+@click.option(
+    "--certificate-type",
+    type=str,
+    help="Client or signing certificate",
+    default="client",
+)
+def create_application_certificates(
     issuer_key_file: click.Path,
     issuer_cert_file: click.Path,
     member_uri: str,
@@ -139,6 +145,7 @@ def create_client_certificates(
     country: str,
     state: str,
     role: list[str],
+    certificate_type: str = "client",
 ):
     """
     Create a private key and use it generate a CSR, then sign the CSR with a CA key and certificate.
@@ -176,7 +183,7 @@ def create_client_certificates(
     )
     client_certificate_pem = client_certificate.public_bytes(serialization.Encoding.PEM)
     bundle = get_bundle(client_certificate_pem, issuer_cert_pem)
-    file_prefix = organization_name.lower().replace(" ", "-")
+    file_prefix = f"{organization_name.lower().replace(" ", "-")}-{certificate_type}"
     # Write private key to disk as application-key.pem
     with open(f"{file_prefix}-key.pem", "wb") as f:
         f.write(

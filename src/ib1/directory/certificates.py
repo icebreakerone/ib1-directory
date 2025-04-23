@@ -277,6 +277,21 @@ def sign_csr(
             x509.SubjectAlternativeName([x509.UniformResourceIdentifier(common_name)]),
             critical=False,
         )
+        # Add key usage suitable for client certificates
+        cert_builder = cert_builder.add_extension(
+            x509.KeyUsage(
+                digital_signature=True,
+                key_cert_sign=False,
+                crl_sign=False,
+                key_agreement=False,
+                content_commitment=False,
+                encipher_only=False,
+                decipher_only=False,
+                key_encipherment=True,
+                data_encipherment=False,
+            ),
+            critical=True,
+        )
 
     if roles:
         cert_builder = encode_roles(cert_builder, roles)
